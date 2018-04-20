@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -44,7 +45,7 @@ public class MenuConfiguration {
 
     @Data
     @Valid
-    private static class MenuOption {
+    public static class MenuOption {
         private String text;
         private String recorded_text;
 
@@ -57,59 +58,10 @@ public class MenuConfiguration {
         private List<MenuOption> options;
     }
 
-    private final Logger log = Logger.getLogger(this.getClass().toGenericString());
-
     private MenuOption dummy = new MenuOption();
-    {dummy.setQueue(getDefault_queue());}
 
-    private List<Say> loadTextMenu() {
-        return getOptions()
-                .stream()
-                .filter(option -> option.getText() != null)
-                .map(option -> new Say
-                        .Builder(option.getText())
-                        .language(language)
-                        .build())
-                .collect(toList());
+    @PostConstruct
+    public void init() {
+        dummy.setQueue(getDefault_queue());
     }
-
-
-    private List<Play> loadRecordedMenu() {
-        return getOptions()
-                .stream()
-                .filter(option -> option.getRecorded_text() != null)
-                .map(option -> new Play
-                        .Builder(option.getRecorded_text())
-                        .build())
-                .collect(toList());
-    }
-
-    public String getQueue(String option) {
-        return getOptions().stream().filter(x -> x.getValue().equals(option)).findFirst().orElse(dummy).getQueue();
-    }
-
-
-    public VoiceResponse finalMenu() {
-        VoiceResponse.Builder builder = new VoiceResponse.Builder();
-        Pause p = new Pause.Builder().length(pause).build();
-
-        Gather.Builder gBuilder = new Gather.Builder();
-
-        log.info(this.toString());
-
-        for(Say s : loadTextMenu()) {
-            builder = builder.say(s).pause(p);
-        }
-
-        builder = builder
-                .gather(new Gather.Builder()
-                        .action("/ivr/welcome/menu/option")
-                        .numDigits(1)
-                        .inputs(DTMF)
-                        .build()
-                );
-
-        return builder.build();
-    }
-
 }
