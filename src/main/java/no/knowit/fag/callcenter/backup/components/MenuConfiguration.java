@@ -43,14 +43,16 @@ public class MenuConfiguration {
     @NotNull
     private String waitmusic;
 
+    private String menutype;
+
     @Data
     @Valid
     public static class MenuOption {
         private String text;
         private String recorded_text;
 
-        @NotNull
         private String queue;
+        private String route;
 
         @NotNull
         private String value;

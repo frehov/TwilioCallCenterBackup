@@ -4,9 +4,10 @@ ivr:
     pause: 1
     default_queue: "annet"
     waitmusic: ""
+    menu_type: "played"
     options:
       - text: "Tast 1 for Salg!"
-        queue: "salg"
+        route: "salg"
         value: 1
         options:
           - text: "Testing submenu"

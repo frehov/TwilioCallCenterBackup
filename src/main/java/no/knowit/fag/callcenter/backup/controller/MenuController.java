@@ -26,7 +26,7 @@ public class MenuController {
     @Autowired
     public MenuController(MenuBuilder menuBuilder) {
         this.menuBuilder = menuBuilder;
-        this.resp = menuBuilder.finalMenu();
+        this.resp = menuBuilder.isSpokenMenu() ? menuBuilder.finalSpokenMenu() : menuBuilder.finalPlayedMenu();
     }
 
     @PostMapping("/ivr/welcome/menu")
@@ -46,7 +46,7 @@ public class MenuController {
     }
 
 
-    @PostMapping("/ivr/welcome/menu/option")
+    @PostMapping("/ivr/welcome/menu/{menuType}")
     public void entry(HttpServletRequest request, HttpServletResponse response) {
         String menuOption = request.getParameter("Digits");
 

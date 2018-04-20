@@ -11,7 +11,10 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static com.twilio.twiml.voice.Gather.Input.DTMF;
@@ -22,11 +25,47 @@ import static java.util.stream.Collectors.toList;
 public class MenuBuilder {
 
     @Autowired
-    MenuConfiguration configuration;
+    private MenuConfiguration configuration;
+
+    private Map<String, VoiceResponse> menuMap;
 
     private final Logger log = Logger.getLogger(this.getClass().toGenericString());
 
+    @PostConstruct
+    public void init() {
+        menuMap = new HashMap<>();
+        menuMap.put("spoken", finalSpokenMenu());
+        menuMap.put("played", finalPlayedMenu());
 
+        for(MenuConfiguration.MenuOption option : configuration.getOptions()) {
+            if(option.getOptions() == null) {
+                //TODO Build an enqueue command
+            } else {
+                flattenMenu(option.getOptions(), option.getRoute());
+            }
+        }
+        log.info(menuMap.toString());
+    }
+
+    private void flattenMenu(List<MenuConfiguration.MenuOption> menulist, String voiceRoute) {
+        for(MenuConfiguration.MenuOption option : menulist) {
+
+            if(option.getOptions() == null) {
+                //TODO Build Enqueue command and put in map.
+            } else {
+                menuMap.put(buildVoiceRoute(voiceRoute, option.getQueue()), null);
+                flattenMenu(option.getOptions(),  buildVoiceRoute(voiceRoute,option.getRoute()));
+            }
+        }
+    }
+
+    private String buildVoiceRoute(String basePath, String appendPath) {
+        return String.format("%s-%s", basePath, appendPath);
+    }
+
+    public boolean isSpokenMenu() {
+        return configuration.getMenutype().toLowerCase().equals("spoken");
+    }
 
     private List<Say> loadTextMenu() {
         return configuration.getOptions()
@@ -51,7 +90,12 @@ public class MenuBuilder {
     }
 
     public String getQueue(String option) {
-        return configuration.getOptions().stream().filter(x -> x.getValue().equals(option)).findFirst().orElse(configuration.getDummy()).getQueue();
+        return configuration.getOptions()
+                .stream()
+                .filter(x -> x.getValue().equals(option))
+                .findFirst()
+                .orElse(configuration.getDummy())
+                .getQueue();
     }
 
     private Gather.Builder gatherBuilder(String menuType) {
@@ -87,30 +131,5 @@ public class MenuBuilder {
 
         return builder.gather(gatherBuilder.build()).build();
     }
-
-
-    public VoiceResponse finalMenu() {
-        VoiceResponse.Builder builder = new VoiceResponse.Builder();
-        Pause p = new Pause.Builder().length(configuration.getPause()).build();
-
-        Gather.Builder gBuilder = new Gather.Builder();
-
-        log.info(this.toString());
-
-        for(Say s : loadTextMenu()) {
-            builder = builder.say(s).pause(p);
-        }
-
-        builder = builder
-                .gather(new Gather.Builder()
-                        .action("/ivr/welcome/menu/option")
-                        .numDigits(1)
-                        .inputs(DTMF)
-                        .build()
-                );
-
-        return builder.build();
-    }
-
 
 }
