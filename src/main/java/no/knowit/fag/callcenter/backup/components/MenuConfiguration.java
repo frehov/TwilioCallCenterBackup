@@ -43,7 +43,6 @@ public class MenuConfiguration {
         private String recording;
 
         private String queue;
-        private String route;
 
         @NotNull
         private String value;
@@ -56,5 +55,7 @@ public class MenuConfiguration {
     @PostConstruct
     public void init() {
         dummy.setQueue(getDefault_queue());
+        dummy.setValue("default");
+        options.add(dummy);
     }
 }

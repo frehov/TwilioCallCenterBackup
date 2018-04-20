@@ -10,6 +10,7 @@ management:
     web:
       exposure:
         include: prometheus, health
+
 management:
   metrics:
     enable:
@@ -19,6 +20,6 @@ management:
 
 twilio:
   account:
-    sid: SK92ac4932ff1ce8984ef9db9beaf204e8
+    sid: xxxxxxxxx
     api:
-      secret: uDeExzhtDRqJTDMqAVULujdfZ3e2McLy
+      secret: xxxxxxxxxx

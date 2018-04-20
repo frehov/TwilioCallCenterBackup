@@ -18,7 +18,7 @@ import static java.util.stream.Collectors.toList;
 
 @Component
 @Profile("menu")
-public class MenuBuilder {
+public class RoutingEngine {
 
     @Autowired
     private MenuConfiguration configuration;
@@ -43,6 +43,7 @@ public class MenuBuilder {
                 flattenMenu(option.getOptions(), buildVoiceRoute("0", option.getValue()));
             }
         }
+        log.info(menuMap.keySet().toString());
     }
 
     private void flattenMenu(List<MenuConfiguration.MenuOption> menulist, String voiceRoute) {
@@ -77,12 +78,12 @@ public class MenuBuilder {
         return builder.build();
     }
 
-    public String buildVoiceRoute(String basePath, String appendPath) {
-        return String.format("%s-%s", basePath, appendPath);
+    public String buildVoiceRoute(String basePath, String subPath) {
+        return String.format("%s-%s", basePath, subPath);
     }
 
-    public VoiceResponse getMenuFromMap(String path) {
-        return menuMap.get(path);
+    public VoiceResponse getMenu(String path) {
+        return menuMap.getOrDefault(path, menuMap.get("0-default"));
     }
 
     private boolean isSpokenMenu() {

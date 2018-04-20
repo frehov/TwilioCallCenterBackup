@@ -1,6 +1,5 @@
 package no.knowit.fag.callcenter.backup.controller;
 
-import com.twilio.twiml.TwiMLException;
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.Say;
 import com.twilio.twiml.voice.Redirect;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.logging.Logger;
 
 @Controller
