@@ -10,14 +10,15 @@ ivr:
         value: 1
         options:
           - text: "Tast 1 for ny meny"
-            route: "depth1"
             value: 1
             options:
               - text: "Du har nådd testkøen, tast 1"
                 queue: "test"
                 value: 1
-              - queue: "test"
+              - text: "Tast 9 for å bli satt over til Daglig leder!"
                 value: 9
+                dial:
+                  - "+47XXXXXXXX"
           - text: "Tast 2 for en annen testkø"
             queue: "depot"
             value: 2
@@ -27,3 +28,5 @@ ivr:
       - text: "Tast 3 for andre henvendelser!"
         queue: "annet"
         value: 3
+      - text: "Ring meg ved å taste 4"
+        value: 4

@@ -4,6 +4,7 @@ import com.twilio.twiml.voice.Say.Language;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Profile;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
@@ -44,9 +45,9 @@ public class MenuConfiguration {
 
         private String queue;
 
-        @NotNull
         private String value;
 
+        private List<String> dial;
         private List<MenuOption> options;
     }
 
@@ -55,7 +56,7 @@ public class MenuConfiguration {
     @PostConstruct
     public void init() {
         dummy.setQueue(getDefault_queue());
-        dummy.setValue("default");
+        dummy.setValue("-1");
         options.add(dummy);
     }
 }

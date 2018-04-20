@@ -2,6 +2,7 @@ package no.knowit.fag.callcenter.backup.components;
 
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.*;
+import com.twilio.twiml.voice.Number;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -33,48 +34,78 @@ public class RoutingEngine {
         menuMap = new HashMap<>();
         menuMap.put("0", rootMenu());
 
+        flattenMenu(configuration.getOptions(), "0");
+
+/*
         for(MenuConfiguration.MenuOption option : configuration.getOptions()) {
             String route = buildVoiceRoute("0", option.getValue());
+            boolean isLeafNode = getLeafNodeStatus(option);
+
             if(option.getOptions() == null) {
                 log.info("0: No submenus under option \"" + option.getValue() + "\" adding enqueue command");
-                menuMap.put(route, buildResponse(option, true, route));
+                menuMap.put(route, buildResponse(option, isLeafNode, route));
                 availableQueues.add(option.getQueue());
             } else {
                 log.info("0: Recursing submenus under option: " + option.getValue());
-                menuMap.put(route, buildResponse(option, false, route));
+                menuMap.put(route, buildResponse(option, isLeafNode, route));
                 flattenMenu(option.getOptions(), buildVoiceRoute("0", option.getValue()));
             }
         }
-        log.info(menuMap.keySet().toString());
-        log.info(availableQueues.toString());
+*/
+        log.info("Flattened menu = "+menuMap.keySet().toString());
+        log.info("Mapped available queues = "+availableQueues.toString());
     }
 
     private void flattenMenu(List<MenuConfiguration.MenuOption> menulist, String voiceRoute) {
         for(MenuConfiguration.MenuOption option : menulist) {
             String route = buildVoiceRoute(voiceRoute, option.getValue());
+            boolean isLeafNode = getLeafNodeStatus(option);
+
             if(option.getOptions() == null) {
-                log.info(voiceRoute + ": No submenus under option \"" + option.getValue() + "\" adding enqueue command");
-                menuMap.put(route, buildResponse(option, true, route));
-                availableQueues.add(option.getQueue());
+                log.info(voiceRoute + ": No submenus under option \"" + option.getValue() + "\" adding leaf node");
+                if(isLeafNode) {
+                    menuMap.put(route, buildResponse(option, isLeafNode, route));
+                    continue;
+                }
+                log.info(route + ": Leaf Node has no \"dial\" or \"queue\" command");
             } else {
                 log.info(voiceRoute+": Recursing submenus under option: " + option.getValue());
-                menuMap.put(route, buildResponse(option, false, route));
+                menuMap.put(route, buildResponse(option, isLeafNode, route));
                 flattenMenu(option.getOptions(), route);
             }
         }
     }
 
-    private VoiceResponse buildResponse(MenuConfiguration.MenuOption option, boolean isQueue, String menuPath) {
+    private boolean getLeafNodeStatus(MenuConfiguration.MenuOption option){
+        return option.getQueue() != null || option.getDial()!= null;
+    }
+
+    private VoiceResponse buildResponse(MenuConfiguration.MenuOption option, boolean isLeafNode, String menuPath) {
         VoiceResponse.Builder builder = new VoiceResponse.Builder();
         Pause pause = new Pause.Builder().length(configuration.getPause()).build();
 
-        if(isQueue) {
-            builder = builder
-                    .enqueue(new Enqueue
-                            .Builder(option.getQueue())
-                            .waitUrl(configuration.getWaitmusic())
-                            .waitUrlMethod(GET)
-                            .build());
+        if(isLeafNode) {
+            if(option.getQueue()!= null) {
+                availableQueues.add(option.getQueue());
+                log.info(menuPath + ": Registering queue \"" + option.getQueue() + "\"");
+                builder = builder
+                        .enqueue(new Enqueue
+                                .Builder(option.getQueue())
+                                .waitUrl(configuration.getWaitmusic())
+                                .waitUrlMethod(GET)
+                                .build());
+            } else if(option.getDial() != null) {
+                for(String number : option.getDial()) {
+                    log.info(menuPath + ": Registering " + number + " to dialing pool");
+                    builder = builder
+                            .dial(new Dial
+                                    .Builder()
+                                    .number(new Number
+                                            .Builder(number)
+                                            .build())
+                                    .build());
+                }
+            }
         } else {
             builder = builder.gather(buildMenu(option.getOptions(), gatherBuilder(menuPath), pause).build());
         }
@@ -87,7 +118,7 @@ public class RoutingEngine {
     }
 
     public VoiceResponse getMenu(String path) {
-        return menuMap.getOrDefault(path, menuMap.get("0-default"));
+        return menuMap.getOrDefault(path, menuMap.get("0--1"));
     }
 
     private boolean isSpokenMenu() {
