@@ -1,10 +1,5 @@
 package no.knowit.fag.callcenter.backup.components;
 
-import com.twilio.twiml.VoiceResponse;
-import com.twilio.twiml.voice.Gather;
-import com.twilio.twiml.voice.Pause;
-import com.twilio.twiml.voice.Play;
-import com.twilio.twiml.voice.Say;
 import com.twilio.twiml.voice.Say.Language;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -16,10 +11,6 @@ import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.logging.Logger;
-
-import static com.twilio.twiml.voice.Gather.Input.DTMF;
-import static java.util.stream.Collectors.toList;
 
 @Component
 @Profile("menu")
@@ -47,7 +38,7 @@ public class MenuConfiguration {
 
     @Data
     @Valid
-    public static class MenuOption {
+    static class MenuOption {
         private String text;
         private String recording;
 

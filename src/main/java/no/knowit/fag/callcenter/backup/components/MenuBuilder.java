@@ -31,16 +31,19 @@ public class MenuBuilder {
     @PostConstruct
     public void init() {
         menuMap = new HashMap<>();
-        menuMap.put("spoken", finalSpokenMenu());
-        menuMap.put("played", finalPlayedMenu());
+        menuMap.put("root", rootMenu());
 
         for(MenuConfiguration.MenuOption option : configuration.getOptions()) {
             if(option.getOptions() == null) {
+                log.info("root: No submenus under \"" + (option.getQueue() != null ? option.getQueue() : option.getRoute()) + "\" adding enqueue command");
+                menuMap.put(option.getQueue(), buildResponse(option, true, option.getQueue()));
                 //TODO Build an enqueue command and put in map
             } else {
+                log.info("root: Recursing submenus under: " + (option.getQueue() != null ? option.getQueue() : option.getRoute()));
                 flattenMenu(option.getOptions(), option.getRoute());
             }
         }
+        log.info(menuMap.keySet().toString());
         log.info(menuMap.toString());
     }
 
@@ -49,29 +52,45 @@ public class MenuBuilder {
 
             if(option.getOptions() == null) {
                 //TODO Build Enqueue command and put in map.
+                log.info(voiceRoute + ": No submenus under \"" + (option.getQueue() != null ? option.getQueue() : option.getRoute()) + "\" adding enqueue command");
+                String route = buildVoiceRoute(voiceRoute, option.getQueue());
+                menuMap.put(route, buildResponse(option, true, route));
             } else {
-                menuMap.put(buildVoiceRoute(voiceRoute, option.getQueue()), null);
-                flattenMenu(option.getOptions(),  buildVoiceRoute(voiceRoute,option.getRoute()));
+                log.info(voiceRoute+": Recursing submenus under: " + (option.getQueue() != null ? option.getQueue() : option.getRoute()));
+                String route = buildVoiceRoute(voiceRoute, option.getRoute());
+                menuMap.put(route, buildResponse(option, false, option.getRoute()));
+                flattenMenu(option.getOptions(), route);
             }
         }
     }
 
-    private VoiceResponse buildResponse(MenuConfiguration.MenuOption option, boolean isQueue) {
+    private VoiceResponse buildResponse(MenuConfiguration.MenuOption option, boolean isQueue, String menuPath) {
         VoiceResponse.Builder builder = new VoiceResponse.Builder();
+        Pause pause = new Pause.Builder().length(configuration.getPause()).build();
 
-        return new VoiceResponse.Builder()
-                .enqueue(new Enqueue.Builder()
-                        .waitUrl(configuration.getWaitmusic())
-                        .waitUrlMethod(GET)
-                        .build())
-                .build();
+        if(isQueue) {
+            builder = builder
+                    .enqueue(new Enqueue
+                            .Builder(option.getQueue())
+                            .waitUrl(configuration.getWaitmusic())
+                            .waitUrlMethod(GET)
+                            .build());
+        } else {
+            builder = builder.gather(buildMenu(option.getOptions(), gatherBuilder(menuPath), pause).build());
+        }
+
+        return builder.build();
     }
 
     private String buildVoiceRoute(String basePath, String appendPath) {
         return String.format("%s-%s", basePath, appendPath);
     }
 
-    public boolean isSpokenMenu() {
+    public VoiceResponse getMenuFromMap(String path) {
+        return menuMap.get(path);
+    }
+
+    private boolean isSpokenMenu() {
         return configuration.getMenutype().toLowerCase().equals("spoken");
     }
 
@@ -96,66 +115,35 @@ public class MenuBuilder {
                 .collect(toList());
     }
 
-    public String getQueue(String option) {
-        return configuration.getOptions()
-                .stream()
-                .filter(x -> x.getValue().equals(option))
-                .findFirst()
-                .orElse(configuration.getDummy())
-                .getQueue();
-    }
-
-    private Gather.Builder gatherBuilder(String menuType) {
-        return new Gather.Builder()
-                .action("/ivr/welcome/menu/"+menuType)
+    private Gather.Builder gatherBuilder(String submenu) {
+        return new Gather
+                .Builder()
+                .action("/ivr/welcome/menu"+( submenu != null ? ("/"+submenu) : "" ))
                 .numDigits(1)
                 .inputs(DTMF)
                 .finishOnKey("#");
+    }
+
+    private Gather.Builder buildMenu(List<MenuConfiguration.MenuOption> options, Gather.Builder gatherBuilder, Pause pause) {
+        if(isSpokenMenu()) {
+            for(Say say : loadTextMenu(options)) {
+                gatherBuilder = gatherBuilder.say(say).pause(pause);
+            }
+        } else {
+            for(Play play  : loadRecordedMenu(options)) {
+                gatherBuilder = gatherBuilder.play(play).pause(pause);
+            }
+        }
+        return gatherBuilder;
     }
 
     public VoiceResponse rootMenu() {
         VoiceResponse.Builder builder = new VoiceResponse.Builder();
         Pause pause = new Pause.Builder().length(configuration.getPause()).build();
 
-        Gather.Builder gatherBuilder = gatherBuilder(isSpokenMenu()?"spoken":"played");
-
-        if(isSpokenMenu()) {
-            for(Say s : loadTextMenu(configuration.getOptions())) {
-                gatherBuilder = gatherBuilder.say(s).pause(pause);
-            }
-        } else {
-            for(Play play  : loadRecordedMenu(configuration.getOptions())) {
-                gatherBuilder = gatherBuilder.play(play).pause(pause);
-            }
-        }
+        Gather.Builder gatherBuilder = gatherBuilder(null);
+        gatherBuilder = buildMenu(configuration.getOptions(), gatherBuilder, pause);
 
         return builder.gather(gatherBuilder.build()).build();
     }
-
-    public VoiceResponse finalPlayedMenu() {
-        VoiceResponse.Builder builder = new VoiceResponse.Builder();
-        Pause pause = new Pause.Builder().length(configuration.getPause()).build();
-
-        Gather.Builder gatherBuilder = gatherBuilder("played");
-
-        for(Play play  : loadRecordedMenu(configuration.getOptions())) {
-            gatherBuilder = gatherBuilder.play(play).pause(pause);
-        }
-
-        return builder.gather(gatherBuilder.build()).build();
-    }
-
-    public VoiceResponse finalSpokenMenu() {
-        VoiceResponse.Builder builder = new VoiceResponse.Builder();
-        Pause pause = new Pause.Builder().length(configuration.getPause()).build();
-
-        Gather.Builder gatherBuilder = gatherBuilder("spoken");
-
-        for(Say s : loadTextMenu(configuration.getOptions())) {
-            gatherBuilder = gatherBuilder.say(s).pause(pause);
-        }
-
-        return builder.gather(gatherBuilder.build()).build();
-    }
-
 }
