@@ -3,6 +3,7 @@ package no.knowit.fag.callcenter.backup.controller;
 import com.twilio.twiml.TwiMLException;
 import com.twilio.twiml.VoiceResponse;
 import no.knowit.fag.callcenter.backup.components.MenuBuilder;
+import no.knowit.fag.callcenter.backup.utils.WriteTwiml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
@@ -21,34 +22,29 @@ public class MenuController {
     private final Logger log = Logger.getLogger(this.getClass().toGenericString());
 
     private final MenuBuilder menuBuilder;
-    private final VoiceResponse rootMenu;
 
     @Autowired
     public MenuController(MenuBuilder menuBuilder) {
         this.menuBuilder = menuBuilder;
-        this.rootMenu = menuBuilder.rootMenu();
     }
 
     @PostMapping("/ivr/welcome/menu")
     public void menu(HttpServletRequest request, HttpServletResponse response) {
 
+        VoiceResponse voiceResponse;
         String menuOption = request.getParameter("Digits");
 
         log.info(menuOption);
 
         if(menuOption == null) {
-            try {
-                response.setContentType("text/xml;charset=UTF-8");
-                response.getWriter().write(rootMenu.toXml());
-            } catch (TwiMLException |IOException e){
-                throw new RuntimeException(e);
-            } finally {
-                log.info(rootMenu.toXml());
-            }
+            voiceResponse = menuBuilder.getMenuFromMap("0");
         } else {
-
+            voiceResponse = menuBuilder.getMenuFromMap(menuBuilder.buildVoiceRoute("0", menuOption));
         }
-        log.info(rootMenu.toString());
+
+        WriteTwiml.write(voiceResponse, response);
+
+        log.info(voiceResponse.toString());
     }
 
 
@@ -57,17 +53,13 @@ public class MenuController {
 
         String menuOption = request.getParameter("Digits");
 
-        log.info(menuOption + " : "+ submenu);
+        log.info("targeting menu " + menuBuilder.buildVoiceRoute(submenu, menuOption));
 
-        try {
-            response.setContentType("text/xml;charset=UTF-8");
-            response.getWriter().write(menuBuilder.getMenuFromMap(submenu).toXml());
-        } catch (TwiMLException |IOException e){
-            throw new RuntimeException(e);
-        } finally {
-            log.info(rootMenu.toXml());
-        }
+        VoiceResponse voiceResponse = menuBuilder.getMenuFromMap(menuBuilder.buildVoiceRoute(submenu, menuOption));
 
+        WriteTwiml.write(voiceResponse, response);
     }
+
+
 
 }

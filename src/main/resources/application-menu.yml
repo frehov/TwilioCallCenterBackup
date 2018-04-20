@@ -14,7 +14,7 @@ ivr:
             route: "depth1"
             value: 1
             options:
-              - text: "Du har nådd testkøen"
+              - text: "Du har nådd testkøen, tast 1"
                 queue: "test"
                 value: 1
           - text: "Tast 2 for en annen testkø"

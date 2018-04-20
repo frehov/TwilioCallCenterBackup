@@ -1,6 +1,5 @@
 package no.knowit.fag.callcenter.backup.components;
 
-
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,34 +30,30 @@ public class MenuBuilder {
     @PostConstruct
     public void init() {
         menuMap = new HashMap<>();
-        menuMap.put("root", rootMenu());
+        menuMap.put("0", rootMenu());
 
         for(MenuConfiguration.MenuOption option : configuration.getOptions()) {
+            String route = buildVoiceRoute("0", option.getValue());
             if(option.getOptions() == null) {
-                log.info("root: No submenus under \"" + (option.getQueue() != null ? option.getQueue() : option.getRoute()) + "\" adding enqueue command");
-                menuMap.put(option.getQueue(), buildResponse(option, true, option.getQueue()));
-                //TODO Build an enqueue command and put in map
+                log.info("0: No submenus under option \"" + option.getValue() + "\" adding enqueue command");
+                menuMap.put(route, buildResponse(option, true, route));
             } else {
-                log.info("root: Recursing submenus under: " + (option.getQueue() != null ? option.getQueue() : option.getRoute()));
-                flattenMenu(option.getOptions(), option.getRoute());
+                log.info("0: Recursing submenus under option: " + option.getValue());
+                menuMap.put(route, buildResponse(option, false, route));
+                flattenMenu(option.getOptions(), buildVoiceRoute("0", option.getValue()));
             }
         }
-        log.info(menuMap.keySet().toString());
-        log.info(menuMap.toString());
     }
 
     private void flattenMenu(List<MenuConfiguration.MenuOption> menulist, String voiceRoute) {
         for(MenuConfiguration.MenuOption option : menulist) {
-
+            String route = buildVoiceRoute(voiceRoute, option.getValue());
             if(option.getOptions() == null) {
-                //TODO Build Enqueue command and put in map.
-                log.info(voiceRoute + ": No submenus under \"" + (option.getQueue() != null ? option.getQueue() : option.getRoute()) + "\" adding enqueue command");
-                String route = buildVoiceRoute(voiceRoute, option.getQueue());
+                log.info(voiceRoute + ": No submenus under option \"" + option.getValue() + "\" adding enqueue command");
                 menuMap.put(route, buildResponse(option, true, route));
             } else {
-                log.info(voiceRoute+": Recursing submenus under: " + (option.getQueue() != null ? option.getQueue() : option.getRoute()));
-                String route = buildVoiceRoute(voiceRoute, option.getRoute());
-                menuMap.put(route, buildResponse(option, false, option.getRoute()));
+                log.info(voiceRoute+": Recursing submenus under option: " + option.getValue());
+                menuMap.put(route, buildResponse(option, false, route));
                 flattenMenu(option.getOptions(), route);
             }
         }
@@ -82,7 +77,7 @@ public class MenuBuilder {
         return builder.build();
     }
 
-    private String buildVoiceRoute(String basePath, String appendPath) {
+    public String buildVoiceRoute(String basePath, String appendPath) {
         return String.format("%s-%s", basePath, appendPath);
     }
 
@@ -137,11 +132,11 @@ public class MenuBuilder {
         return gatherBuilder;
     }
 
-    public VoiceResponse rootMenu() {
+    private VoiceResponse rootMenu() {
         VoiceResponse.Builder builder = new VoiceResponse.Builder();
         Pause pause = new Pause.Builder().length(configuration.getPause()).build();
 
-        Gather.Builder gatherBuilder = gatherBuilder(null);
+        Gather.Builder gatherBuilder = gatherBuilder("0");
         gatherBuilder = buildMenu(configuration.getOptions(), gatherBuilder, pause);
 
         return builder.gather(gatherBuilder.build()).build();
