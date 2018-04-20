@@ -3,10 +3,15 @@ ivr:
     language: "nb_no"
     pause: 1
     default_queue: "annet"
+    waitmusic: ""
     options:
       - text: "Tast 1 for Salg!"
         queue: "salg"
         value: 1
+        options:
+          - text: "Testing submenu"
+            queue: "test"
+            value: 1
       - text: "Tast 2 for Kundeservice!"
         queue: "kundeservice"
         value: 2
