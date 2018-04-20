@@ -7,9 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static com.twilio.http.HttpMethod.GET;
@@ -25,10 +23,13 @@ public class RoutingEngine {
 
     private Map<String, VoiceResponse> menuMap;
 
+    private Set<String> availableQueues;
+
     private final Logger log = Logger.getLogger(this.getClass().toGenericString());
 
     @PostConstruct
     public void init() {
+        availableQueues = new HashSet<>();
         menuMap = new HashMap<>();
         menuMap.put("0", rootMenu());
 
@@ -37,6 +38,7 @@ public class RoutingEngine {
             if(option.getOptions() == null) {
                 log.info("0: No submenus under option \"" + option.getValue() + "\" adding enqueue command");
                 menuMap.put(route, buildResponse(option, true, route));
+                availableQueues.add(option.getQueue());
             } else {
                 log.info("0: Recursing submenus under option: " + option.getValue());
                 menuMap.put(route, buildResponse(option, false, route));
@@ -44,6 +46,7 @@ public class RoutingEngine {
             }
         }
         log.info(menuMap.keySet().toString());
+        log.info(availableQueues.toString());
     }
 
     private void flattenMenu(List<MenuConfiguration.MenuOption> menulist, String voiceRoute) {
@@ -52,6 +55,7 @@ public class RoutingEngine {
             if(option.getOptions() == null) {
                 log.info(voiceRoute + ": No submenus under option \"" + option.getValue() + "\" adding enqueue command");
                 menuMap.put(route, buildResponse(option, true, route));
+                availableQueues.add(option.getQueue());
             } else {
                 log.info(voiceRoute+": Recursing submenus under option: " + option.getValue());
                 menuMap.put(route, buildResponse(option, false, route));
