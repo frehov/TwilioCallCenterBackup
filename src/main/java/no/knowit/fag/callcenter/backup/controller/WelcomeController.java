@@ -23,19 +23,15 @@ public class WelcomeController {
 
     @PostMapping("/ivr/welcome")
     public void welcome(HttpServletRequest request, HttpServletResponse response) {
-        Say say  = new Say
-                .Builder("Hei Henrik, Har du det bra?")
-                .language(config.getLanguage())
-                .build();
-
-        Redirect menu = new Redirect
-                .Builder("/ivr/welcome/menu")
-                .build();
-
         VoiceResponse resp = new VoiceResponse
                 .Builder()
-                .say(say)
-                .redirect(menu)
+                .say(new Say
+                        .Builder("Hei Henrik, Har du det bra?")
+                        .language(config.getLanguage())
+                        .build())
+                .redirect(new Redirect
+                        .Builder("/ivr/welcome/menu")
+                        .build())
                 .build();
 
         WriteTwiml.write(resp, response);
