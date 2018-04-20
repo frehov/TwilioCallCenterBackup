@@ -49,7 +49,7 @@ public class MenuConfiguration {
     @Valid
     public static class MenuOption {
         private String text;
-        private String recorded_text;
+        private String recording;
 
         private String queue;
         private String route;

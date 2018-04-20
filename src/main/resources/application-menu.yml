@@ -3,7 +3,7 @@ ivr:
     language: "nb_no"
     pause: 1
     default_queue: "annet"
-    waitmusic: ""
+    waitmusic: "http://s3.amazonaws.com/com.twilio.sounds.music/index.xml"
     menu_type: "played"
     options:
       - text: "Tast 1 for Salg!"
