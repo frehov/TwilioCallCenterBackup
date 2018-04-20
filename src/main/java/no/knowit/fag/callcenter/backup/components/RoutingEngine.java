@@ -36,22 +36,6 @@ public class RoutingEngine {
 
         flattenMenu(configuration.getOptions(), "0");
 
-/*
-        for(MenuConfiguration.MenuOption option : configuration.getOptions()) {
-            String route = buildVoiceRoute("0", option.getValue());
-            boolean isLeafNode = getLeafNodeStatus(option);
-
-            if(option.getOptions() == null) {
-                log.info("0: No submenus under option \"" + option.getValue() + "\" adding enqueue command");
-                menuMap.put(route, buildResponse(option, isLeafNode, route));
-                availableQueues.add(option.getQueue());
-            } else {
-                log.info("0: Recursing submenus under option: " + option.getValue());
-                menuMap.put(route, buildResponse(option, isLeafNode, route));
-                flattenMenu(option.getOptions(), buildVoiceRoute("0", option.getValue()));
-            }
-        }
-*/
         log.info("Flattened menu = "+menuMap.keySet().toString());
         log.info("Mapped available queues = "+availableQueues.toString());
     }
