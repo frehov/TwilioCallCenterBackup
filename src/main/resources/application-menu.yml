@@ -1,0 +1,15 @@
+ivr:
+  menu:
+    language: "nb_no"
+    pause: 1
+    default_queue: "annet"
+    options:
+      - text: "Tast 1 for Salg!"
+        queue: "salg"
+        value: 1
+      - text: "Tast 2 for Kundeservice!"
+        queue: "kundeservice"
+        value: 2
+      - text: "Tast 3 for andre henvendelser!"
+        queue: "annet"
+        value: 3

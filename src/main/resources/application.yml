@@ -1,0 +1,24 @@
+spring:
+  profiles:
+    active: @activatedProperties@,menu
+
+management:
+  endpoint:
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+management:
+  metrics:
+    enable:
+      jvm: false
+      logback: false
+      tomcat: false
+
+twilio:
+  account:
+    sid: SK92ac4932ff1ce8984ef9db9beaf204e8
+    api:
+      secret: uDeExzhtDRqJTDMqAVULujdfZ3e2McLy
