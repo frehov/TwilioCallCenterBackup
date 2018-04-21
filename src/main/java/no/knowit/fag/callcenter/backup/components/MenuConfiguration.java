@@ -34,6 +34,7 @@ public class MenuConfiguration {
     @NotNull
     private String waitmusic;
 
+    @NotNull
     private String menutype;
 
     @Data
@@ -44,6 +45,7 @@ public class MenuConfiguration {
 
         private String queue;
 
+        @NotNull
         private String value;
 
         private List<String> dial;

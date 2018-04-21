@@ -75,8 +75,7 @@ public class RoutingEngine {
                 builder = builder
                         .enqueue(new Enqueue
                                 .Builder(option.getQueue())
-                                .waitUrl(configuration.getWaitmusic())
-                                .waitUrlMethod(GET)
+                                .waitUrl("/ivr/status/queue/"+option.getQueue())
                                 .build());
             } else if(option.getDial() != null) {
                 for(String number : option.getDial()) {
@@ -87,6 +86,8 @@ public class RoutingEngine {
                                     .number(new Number
                                             .Builder(number)
                                             .build())
+                                    .hangupOnStar(true)
+                                    .action("/ivr/status/dial")
                                     .build());
                 }
             }

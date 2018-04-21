@@ -32,8 +32,6 @@ public class MenuController {
         VoiceResponse voiceResponse;
         String menuOption = request.getParameter("Digits");
 
-        log.info(menuOption);
-
         if(menuOption == null) {
             voiceResponse = routingEngine.getMenu("0");
         } else {
@@ -44,7 +42,6 @@ public class MenuController {
         WriteTwiml.write(voiceResponse, response);
 
     }
-
 
     @PostMapping("/ivr/welcome/menu/{submenu}")
     public void entry(HttpServletRequest request, HttpServletResponse response, @PathVariable String submenu) {

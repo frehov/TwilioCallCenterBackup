@@ -3,8 +3,9 @@ ivr:
     language: "nb_no"
     pause: 1
     default_queue: "annet"
-    waitmusic: "http://s3.amazonaws.com/com.twilio.sounds.music/index.xml"
-    menu_type: "spoken"
+    #waitmusic: "http://s3.amazonaws.com/com.twilio.sounds.music/index.xml"
+    waitmusic: "http://com.twilio.sounds.music.s3.amazonaws.com/BusyStrings.mp3"
+    menutype: "spoken"
     options:
       - text: "Tast 1 for Salg!"
         value: 1
