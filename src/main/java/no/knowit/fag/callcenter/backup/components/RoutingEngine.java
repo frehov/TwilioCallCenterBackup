@@ -10,9 +10,11 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.twilio.twiml.voice.Gather.Input.DTMF;
+import static java.util.logging.Level.WARNING;
 import static java.util.stream.Collectors.toList;
 import static no.knowit.fag.callcenter.backup.extras.enums.MenuType.SPOKEN;
 
@@ -52,7 +54,7 @@ public class RoutingEngine {
                     menuMap.put(route, buildResponse(option, isLeafNode, route));
                     continue;
                 }
-                log.info(route + ": Leaf Node has no \"dial\" or \"queue\" command");
+                log.log(WARNING, route + ": Leaf Node is missing a required command");
             } else {
                 log.info(voiceRoute+": Recursing submenus under option: " + option.getValue());
                 menuMap.put(route, buildResponse(option, isLeafNode, route));
@@ -153,12 +155,11 @@ public class RoutingEngine {
     }
 
     private VoiceResponse rootMenu() {
-        VoiceResponse.Builder builder = new VoiceResponse.Builder();
         Pause pause = new Pause.Builder().length(configuration.getPause()).build();
 
         Gather.Builder gatherBuilder = buildGather("0");
         gatherBuilder = buildMenu(configuration.getOptions(), gatherBuilder, pause);
 
-        return builder.gather(gatherBuilder.build()).build();
+        return new VoiceResponse.Builder().gather(gatherBuilder.build()).build();
     }
 }
