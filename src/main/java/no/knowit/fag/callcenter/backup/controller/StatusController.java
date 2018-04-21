@@ -1,12 +1,12 @@
 package no.knowit.fag.callcenter.backup.controller;
 
-import com.twilio.http.HttpMethod;
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.Play;
 import com.twilio.twiml.voice.Redirect;
 import com.twilio.twiml.voice.Say;
 import no.knowit.fag.callcenter.backup.components.MenuConfiguration;
 import no.knowit.fag.callcenter.backup.components.RoutingEngine;
+import no.knowit.fag.callcenter.backup.extras.enums.CallType;
 import no.knowit.fag.callcenter.backup.utils.WriteTwiml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -30,32 +30,39 @@ public class StatusController {
 
     private final Logger log = Logger.getLogger(this.getClass().toGenericString());
 
-    @PostMapping("/ivr/status/{type}/{id}")
-    public void queueStatus(HttpServletRequest request, HttpServletResponse response, @PathVariable String type, @PathVariable String id) {
+    @PostMapping("/ivr/status/{callType}/{id}")
+    public void queueStatus(HttpServletRequest request, HttpServletResponse response, @PathVariable CallType callType, @PathVariable String id) {
 
         Map<String, String[]> parameters = request.getParameterMap();
         Set<String> parameterNames = request.getParameterMap().keySet();
 
         log.info(parameterNames.toString());
-        // TODO Implement enum for queue and conference?
-        if (type.equals("queue")) {
-            for (String parameter : parameterNames) {
-                log.info(parameter + " : " + request.getParameter(parameter));
-            }
+        for (String parameter : parameterNames) {
+            log.info(parameter + " : " + request.getParameter(parameter));
+        }
 
-            WriteTwiml.write(new VoiceResponse.Builder()
-                    .say(new Say.Builder("Du er nummer " + request.getParameter("QueuePosition") + " i køen " + id)
-                            .language(configuration.getLanguage())
-                            .build())
-                    .play(new Play.Builder(configuration.getWaitmusic())
-                            .build())
-                    .build(), response);
-
+        switch (callType) {
+            case QUEUE:
+                WriteTwiml.write(new VoiceResponse.Builder()
+                        .say(new Say.Builder("Du er nummer " + request.getParameter("QueuePosition") + " i køen " + id)
+                                .language(configuration.getLanguage())
+                                .build())
+                        .play(new Play.Builder(configuration.getWaitmusic())
+                                .build())
+                        .build(), response);
+                break;
+            case CONFERENCE:
+                break;
+            default:
+                WriteTwiml.write(new VoiceResponse.Builder()
+                        .redirect(new Redirect.Builder("ivr/welcome/menu")
+                                .build())
+                        .build(), response);
         }
     }
 
-    @PostMapping("/ivr/status/{type}")
-    public void dialStatus(HttpServletRequest request, HttpServletResponse response, @PathVariable String type) {
+    @PostMapping("/ivr/status/{callType}")
+    public void dialStatus(HttpServletRequest request, HttpServletResponse response, @PathVariable CallType callType) {
 
     }
 

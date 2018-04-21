@@ -1,5 +1,6 @@
 package no.knowit.fag.callcenter.backup.components;
 
+import com.twilio.twiml.TwiML;
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.*;
 import com.twilio.twiml.voice.Number;
@@ -11,9 +12,9 @@ import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static com.twilio.http.HttpMethod.GET;
 import static com.twilio.twiml.voice.Gather.Input.DTMF;
 import static java.util.stream.Collectors.toList;
+import static no.knowit.fag.callcenter.backup.extras.enums.MenuType.SPOKEN;
 
 @Component
 @Profile("menu")
@@ -99,10 +100,9 @@ public class RoutingEngine {
                                 //.eventCallbackUrl("/ivr/status/conference/"+option.getConference())
                                 .build())
                         .build());
-
             }
         } else {
-            builder = builder.gather(buildMenu(option.getOptions(), gatherBuilder(menuPath), pause).build());
+            builder = builder.gather(buildMenu(option.getOptions(), buildGather(menuPath), pause).build());
         }
 
         return builder.build();
@@ -117,48 +117,37 @@ public class RoutingEngine {
     }
 
     private boolean isSpokenMenu() {
-        return configuration.getMenutype().toLowerCase().equals("spoken");
+        return configuration.getMenutype() == SPOKEN;
     }
 
-    private List<Say> loadTextMenu(List<MenuConfiguration.MenuOption> options) {
+    private Say buildSay(MenuConfiguration.MenuOption option) {
+        return new Say.Builder(option.getText()).language(configuration.getLanguage()).build();
+    }
+
+    private Play buildPlay(MenuConfiguration.MenuOption option) {
+        return new Play.Builder(option.getRecording()).build();
+    }
+
+    private List<TwiML> loadMenu(List<MenuConfiguration.MenuOption> options, boolean isSpoken) {
         return options
                 .stream()
-                .filter(option -> option.getText() != null)
-                .map(option -> new Say
-                        .Builder(option.getText())
-                        .language(configuration.getLanguage())
-                        .build())
+                .filter(option -> isSpoken ? (option.getText() != null) : (option.getRecording() != null) )
+                .map(option -> isSpoken ? buildSay(option) : buildPlay(option))
                 .collect(toList());
     }
 
-    private List<Play> loadRecordedMenu(List<MenuConfiguration.MenuOption> options) {
-        return options
-                .stream()
-                .filter(option -> option.getRecording() != null)
-                .map(option -> new Play
-                        .Builder(option.getRecording())
-                        .build())
-                .collect(toList());
-    }
-
-    private Gather.Builder gatherBuilder(String submenu) {
+    private Gather.Builder buildGather(String submenu) {
         return new Gather
                 .Builder()
-                .action("/ivr/welcome/menu"+( submenu != null ? ("/"+submenu) : "" ))
+                .action("/ivr/welcome/menu/"+submenu)
                 .numDigits(1)
                 .inputs(DTMF)
                 .finishOnKey("#");
     }
 
     private Gather.Builder buildMenu(List<MenuConfiguration.MenuOption> options, Gather.Builder gatherBuilder, Pause pause) {
-        if(isSpokenMenu()) {
-            for(Say say : loadTextMenu(options)) {
-                gatherBuilder = gatherBuilder.say(say).pause(pause);
-            }
-        } else {
-            for(Play play  : loadRecordedMenu(options)) {
-                gatherBuilder = gatherBuilder.play(play).pause(pause);
-            }
+        for(TwiML twiML : loadMenu(options, isSpokenMenu())) {
+            gatherBuilder = isSpokenMenu() ? gatherBuilder.say((Say) twiML).pause(pause) : gatherBuilder.play((Play) twiML).pause(pause);;
         }
         return gatherBuilder;
     }
@@ -167,7 +156,7 @@ public class RoutingEngine {
         VoiceResponse.Builder builder = new VoiceResponse.Builder();
         Pause pause = new Pause.Builder().length(configuration.getPause()).build();
 
-        Gather.Builder gatherBuilder = gatherBuilder("0");
+        Gather.Builder gatherBuilder = buildGather("0");
         gatherBuilder = buildMenu(configuration.getOptions(), gatherBuilder, pause);
 
         return builder.gather(gatherBuilder.build()).build();

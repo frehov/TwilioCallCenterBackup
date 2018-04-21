@@ -2,7 +2,9 @@ package no.knowit.fag.callcenter.backup.components;
 
 import com.twilio.twiml.voice.Say.Language;
 import lombok.Data;
+import no.knowit.fag.callcenter.backup.extras.enums.MenuType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -35,7 +37,7 @@ public class MenuConfiguration {
     private String waitmusic;
 
     @NotNull
-    private String menutype;
+    private MenuType menutype;
 
     @Data
     @Valid
@@ -53,10 +55,10 @@ public class MenuConfiguration {
         private List<MenuOption> options;
     }
 
-    private MenuOption dummy = new MenuOption();
 
     @PostConstruct
     public void init() {
+        final MenuOption dummy = new MenuOption();
         dummy.setQueue(getDefault_queue());
         dummy.setValue("-1");
         options.add(dummy);
