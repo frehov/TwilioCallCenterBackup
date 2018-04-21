@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.twilio.twiml.voice.Gather.Input.DTMF;
@@ -149,7 +148,7 @@ public class RoutingEngine {
 
     private Gather.Builder buildMenu(List<MenuConfiguration.MenuOption> options, Gather.Builder gatherBuilder, Pause pause) {
         for(TwiML twiML : loadMenu(options, isSpokenMenu())) {
-            gatherBuilder = isSpokenMenu() ? gatherBuilder.say((Say) twiML).pause(pause) : gatherBuilder.play((Play) twiML).pause(pause);;
+            gatherBuilder = isSpokenMenu() ? gatherBuilder.say((Say) twiML).pause(pause) : gatherBuilder.play((Play) twiML).pause(pause);
         }
         return gatherBuilder;
     }
