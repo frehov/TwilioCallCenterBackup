@@ -44,6 +44,7 @@ public class MenuConfiguration {
         private String recording;
 
         private String queue;
+        private String conference;
 
         @NotNull
         private String value;

@@ -61,7 +61,7 @@ public class RoutingEngine {
     }
 
     private boolean getLeafNodeStatus(MenuConfiguration.MenuOption option){
-        return option.getQueue() != null || option.getDial()!= null;
+        return option.getQueue() != null || option.getDial()!= null || option.getConference() != null;
     }
 
     private VoiceResponse buildResponse(MenuConfiguration.MenuOption option, boolean isLeafNode, String menuPath) {
@@ -90,6 +90,16 @@ public class RoutingEngine {
                                     .action("/ivr/status/dial")
                                     .build());
                 }
+            } else if (option.getConference() != null) {
+                log.info(menuPath + ": Registering conference option \"" + option.getConference() + "\" to menu");
+                builder = builder.dial( new Dial
+                        .Builder()
+                        .conference(new Conference
+                                .Builder(option.getConference())
+                                //.eventCallbackUrl("/ivr/status/conference/"+option.getConference())
+                                .build())
+                        .build());
+
             }
         } else {
             builder = builder.gather(buildMenu(option.getOptions(), gatherBuilder(menuPath), pause).build());

@@ -4,7 +4,8 @@ ivr:
     pause: 1
     default_queue: "annet"
     #waitmusic: "http://s3.amazonaws.com/com.twilio.sounds.music/index.xml"
-    waitmusic: "http://com.twilio.sounds.music.s3.amazonaws.com/BusyStrings.mp3"
+    #waitmusic: "http://com.twilio.sounds.music.s3.amazonaws.com/BusyStrings.mp3"
+    waitmusic: "http://com.twilio.music.electronica.s3.amazonaws.com/teru_-_110_Downtempo_Electronic_4.mp3"
     menutype: "spoken"
     options:
       - text: "Tast 1 for Salg!"
@@ -23,6 +24,8 @@ ivr:
           - text: "Tast 2 for en annen testkø"
             queue: "depot"
             value: 2
+          - conference: "VIP"
+            value: 8
       - text: "Tast 2 for Kundeservice!"
         queue: "kundeservice"
         value: 2

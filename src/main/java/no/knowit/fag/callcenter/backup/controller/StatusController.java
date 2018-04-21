@@ -30,29 +30,32 @@ public class StatusController {
 
     private final Logger log = Logger.getLogger(this.getClass().toGenericString());
 
-    @PostMapping("/ivr/status/queue/{queuename}")
-    public void queueStatus(HttpServletRequest request, HttpServletResponse response, @PathVariable String queuename) {
+    @PostMapping("/ivr/status/{type}/{id}")
+    public void queueStatus(HttpServletRequest request, HttpServletResponse response, @PathVariable String type, @PathVariable String id) {
 
-        Map<String, String[]> parameters =  request.getParameterMap();
+        Map<String, String[]> parameters = request.getParameterMap();
         Set<String> parameterNames = request.getParameterMap().keySet();
 
         log.info(parameterNames.toString());
-        for(String parameter : parameterNames) {
-            log.info(parameter + " : " + request.getParameter(parameter));
+        // TODO Implement enum for queue and conference?
+        if (type.equals("queue")) {
+            for (String parameter : parameterNames) {
+                log.info(parameter + " : " + request.getParameter(parameter));
+            }
+
+            WriteTwiml.write(new VoiceResponse.Builder()
+                    .say(new Say.Builder("Du er nummer " + request.getParameter("QueuePosition") + " i køen " + id)
+                            .language(configuration.getLanguage())
+                            .build())
+                    .play(new Play.Builder(configuration.getWaitmusic())
+                            .build())
+                    .build(), response);
+
         }
-
-        WriteTwiml.write(new VoiceResponse.Builder()
-                .say(new Say.Builder("Du er nummer " + request.getParameter("QueuePosition") + " i køen " + queuename)
-                        .language(configuration.getLanguage())
-                        .build())
-                .play(new Play.Builder(configuration.getWaitmusic())
-                        .build())
-                .build(), response);
-
     }
 
-    @PostMapping("/ivr/status/dial")
-    public void dialStatus(HttpServletRequest request, HttpServletResponse response) {
+    @PostMapping("/ivr/status/{type}")
+    public void dialStatus(HttpServletRequest request, HttpServletResponse response, @PathVariable String type) {
 
     }
 
