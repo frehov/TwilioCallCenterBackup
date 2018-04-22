@@ -25,13 +25,11 @@ public class StatusController {
     @Autowired
     private RoutingEngine routingEngine;
 
-    @Autowired
-    private MenuConfiguration configuration;
-
     private final Logger log = Logger.getLogger(this.getClass().toGenericString());
 
     @PostMapping("/ivr/status/{callType}/{id}")
     public void queueStatus(HttpServletRequest request, HttpServletResponse response, @PathVariable CallType callType, @PathVariable String id) {
+
 
         Map<String, String[]> parameters = request.getParameterMap();
         Set<String> parameterNames = request.getParameterMap().keySet();
@@ -42,16 +40,16 @@ public class StatusController {
         }
 
         switch (callType) {
-            case QUEUE:
+            case queue:
                 WriteTwiml.write(new VoiceResponse.Builder()
                         .say(new Say.Builder("Du er nummer " + request.getParameter("QueuePosition") + " i køen " + id)
-                                .language(configuration.getLanguage())
+                                .language(routingEngine.getConfiguration().getLanguage())
                                 .build())
-                        .play(new Play.Builder(configuration.getWaitmusic())
+                        .play(new Play.Builder(routingEngine.getConfiguration().getWaitmusic())
                                 .build())
                         .build(), response);
                 break;
-            case CONFERENCE:
+            case conference:
                 break;
             default:
                 WriteTwiml.write(new VoiceResponse.Builder()
@@ -63,7 +61,6 @@ public class StatusController {
 
     @PostMapping("/ivr/status/{callType}")
     public void dialStatus(HttpServletRequest request, HttpServletResponse response, @PathVariable CallType callType) {
-
     }
 
 }

@@ -4,7 +4,6 @@ import com.twilio.twiml.voice.Say.Language;
 import lombok.Data;
 import no.knowit.fag.callcenter.backup.extras.enums.MenuType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -21,13 +20,11 @@ import java.util.List;
 @Validated
 public class MenuConfiguration {
 
-    @NotNull
     private List<MenuOption> options;
 
     @NotNull
     private Language language;
 
-    @NotNull
     private String default_queue;
 
     @NotNull
@@ -58,6 +55,7 @@ public class MenuConfiguration {
 
     @PostConstruct
     public void init() {
+        if(getOptions() != null) {return;}
         final MenuOption dummy = new MenuOption();
         dummy.setQueue(getDefault_queue());
         dummy.setValue("-1");
